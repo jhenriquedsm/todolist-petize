@@ -2,6 +2,8 @@ package br.com.petize.todolist.model;
 
 import br.com.petize.todolist.model.enums.Priority;
 import br.com.petize.todolist.model.enums.Status;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
@@ -9,6 +11,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Data
@@ -39,4 +42,13 @@ public class Task {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Priority priority;
+
+    @ManyToOne
+    @JoinColumn(name = "parent_task_id")
+    @JsonBackReference
+    private Task parentTask;
+
+    @OneToMany(mappedBy = "parentTask", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Task> subTasks;
 }
