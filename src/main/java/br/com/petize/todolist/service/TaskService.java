@@ -33,6 +33,15 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
+    public Task createSubtask(Long parentId, Task subtaskData) {
+        Task parentTask = taskRepository.findById(parentId)
+                .orElseThrow(() -> new RuntimeException("Tarefa não encontrada!"));
+        subtaskData.setId(null);
+        subtaskData.setParentTask(parentTask);
+
+        return taskRepository.save(subtaskData);
+    }
+
     public Task update(Long id, Task taskData) {
         Task foundTask = taskRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Tarefa não encontrada!"));

@@ -11,7 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.print.attribute.standard.Media;
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -25,6 +28,17 @@ public class TaskController {
     @Operation(summary = "Cria uma tarefa", description = "Cria uma tarefa recebendo os dados da tarefa pelo JSON")
     public Task create(@RequestBody Task task) {
         return taskService.create(task);
+    }
+
+    @PostMapping(value = "/{parentId}/subtasks", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Task> createSubtask(@PathVariable Long parentId, @Valid @RequestBody Task subtaskData) {
+        Task createdSubtask = taskService.createSubtask(parentId, subtaskData);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentContextPath().path("/task/{id}")
+                .buildAndExpand(createdSubtask.getId()).toUri();
+
+        return ResponseEntity.created(location).body(createdSubtask);
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -56,14 +70,14 @@ public class TaskController {
         }
     }
 
-    @PatchMapping("/{id}/status")
+    @PatchMapping(value = "/{id}/status", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Atualiza o status da tarefa", description = "Atualiza o status da tarefa passando o novo status em JSON")
     public ResponseEntity<Task> updateStatus(@PathVariable Long id, @Valid @RequestBody StatusUpdateDTO statusUpdate) {
         Task updatedTask = taskService.updateStatus(id, statusUpdate.status());
         return ResponseEntity.ok(updatedTask);
     }
 
-    @PatchMapping("/{id}/priority")
+    @PatchMapping(value = "/{id}/priority", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Atualiza a prioridade da tarefa", description = "Atualiza a prioridade tarefa passando a nova prioridade em JSON")
     public ResponseEntity<Task> updatePriority(@PathVariable Long id, @Valid @RequestBody UpdatePriorityDTO updatePriority) {
         Task updatedTask = taskService.updatePriority(id, updatePriority.priority());
