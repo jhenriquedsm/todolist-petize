@@ -70,7 +70,7 @@ Após subir o container e rodar a aplicação, ela estará disponível em:
 ### 1. Registrar usuário
 
 #### Faça uma requisição POST para o endpoint /auth/register com as credenciais de cadastro.
-```json
+```bash
 POST /auth/register
 Content-Type: application/json
 
@@ -83,7 +83,7 @@ Content-Type: application/json
 ### 2. Gerar Token
 
 #### Faça uma requisição POST para o endpoint /auth/login com as credenciais do usuário criado.
-```json
+```bash
 POST /auth/login
 Content-Type: application/json
 
