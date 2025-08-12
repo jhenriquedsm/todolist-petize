@@ -1,8 +1,12 @@
 package br.com.petize.todolist.controller;
 
+import br.com.petize.todolist.dtos.StatusUpdateDTO;
+import br.com.petize.todolist.dtos.UpdatePriorityDTO;
 import br.com.petize.todolist.model.Task;
+import br.com.petize.todolist.model.enums.Priority;
 import br.com.petize.todolist.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +34,7 @@ public class TaskController {
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Atualiza a tarefa", description = "Atualiza a tarefa com os campos alterados")
     public ResponseEntity<Task> update(@PathVariable(value = "id") Long id, @RequestBody Task task) {
         try {
             task.setId(id);
@@ -41,6 +46,7 @@ public class TaskController {
     }
 
     @DeleteMapping(value = "/{id}")
+    @Operation(summary = "Deleta a tarefa", description = "Deleta a tarefa por id")
     public ResponseEntity<?> delete(@PathVariable(value = "id") Long id) {
         try {
             taskService.delete(id);
@@ -48,5 +54,19 @@ public class TaskController {
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PatchMapping("/{id}/status")
+    @Operation(summary = "Atualiza o status da tarefa", description = "Atualiza o status da tarefa passando o novo status em JSON")
+    public ResponseEntity<Task> updateStatus(@PathVariable Long id, @Valid @RequestBody StatusUpdateDTO statusUpdate) {
+        Task updatedTask = taskService.updateStatus(id, statusUpdate.status());
+        return ResponseEntity.ok(updatedTask);
+    }
+
+    @PatchMapping("/{id}/priority")
+    @Operation(summary = "Atualiza a prioridade da tarefa", description = "Atualiza a prioridade tarefa passando a nova prioridade em JSON")
+    public ResponseEntity<Task> updatePriority(@PathVariable Long id, @Valid @RequestBody UpdatePriorityDTO updatePriority) {
+        Task updatedTask = taskService.updatePriority(id, updatePriority.priority());
+        return ResponseEntity.ok(updatedTask);
     }
 }

@@ -1,6 +1,7 @@
 package br.com.petize.todolist.service;
 
 import br.com.petize.todolist.model.Task;
+import br.com.petize.todolist.model.enums.Priority;
 import br.com.petize.todolist.model.enums.Status;
 import br.com.petize.todolist.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,5 +65,24 @@ public class TaskService {
                 .orElseThrow(() -> new RuntimeException("Tarefa não encontrada!"));
 
         taskRepository.delete(foundTask);
+    }
+
+    public Task updateStatus(Long id, Status newStatus) {
+        Task foundTask = taskRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tarefa não encontrada!"));
+        if (newStatus == Status.COMPLETED) {
+            validateSubtasks(foundTask);
+        }
+
+        foundTask.setStatus(newStatus);
+        return taskRepository.save(foundTask);
+    }
+
+    public Task updatePriority(Long id, Priority newPriority) {
+        Task foundTask = taskRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tarefa não encontrada!"));
+
+        foundTask.setPriority(newPriority);
+        return taskRepository.save(foundTask);
     }
 }
