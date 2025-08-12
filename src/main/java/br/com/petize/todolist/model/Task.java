@@ -51,4 +51,9 @@ public class Task {
     @OneToMany(mappedBy = "parentTask", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Task> subTasks;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    @JsonBackReference("user-tasks")
+    private User user;
 }
