@@ -33,6 +33,7 @@ public class TaskController {
     }
 
     @PostMapping(value = "/{parentId}/subtasks", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Cria uma subtarefa", description = "Cria uma subtarefa associando ela à uma tarefa pai")
     public ResponseEntity<Task> createSubtask(@PathVariable Long parentId, @Valid @RequestBody Task subtaskData) {
         Task createdSubtask = taskService.createSubtask(parentId, subtaskData);
 
