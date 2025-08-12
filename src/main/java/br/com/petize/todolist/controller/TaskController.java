@@ -44,7 +44,7 @@ public class TaskController {
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Busca todas as tarefas", description = "Busca todas as tarefas persistidas no banco de dados")
+    @Operation(summary = "Busca todas tarefas com filtros opcionais", description = "Busca as tarefas persistidas no banco de dados com filtros como status, priority e dueDate")
     public ResponseEntity<List<Task>> findAll(
             @RequestParam(required = false)Status status,
             @RequestParam(required = false)Priority priority,
