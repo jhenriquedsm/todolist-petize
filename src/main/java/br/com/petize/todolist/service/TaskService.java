@@ -1,6 +1,8 @@
 package br.com.petize.todolist.service;
 
+import br.com.petize.todolist.dtos.TaskResponseDTO;
 import br.com.petize.todolist.model.Task;
+import br.com.petize.todolist.model.User;
 import br.com.petize.todolist.model.enums.Priority;
 import br.com.petize.todolist.model.enums.Status;
 import br.com.petize.todolist.repository.TaskRepository;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -26,8 +29,10 @@ public class TaskService {
                 .orElseThrow(() -> new RuntimeException("Tarefa não encontrada!"));
     }
 
-    public Task create(Task task) {
+    public Task create(Task task, User authenticatedUser) {
         task.setId(null);
+        task.setUser(authenticatedUser);
+
         if (task.getParentTask() != null && task.getParentTask().getId() != null) {
             Task parent = findById(task.getParentTask().getId());
             task.setParentTask(parent);
@@ -35,11 +40,12 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    public Task createSubtask(Long parentId, Task subtaskData) {
+    public Task createSubtask(Long parentId, Task subtaskData, User authenticatedUser) {
         Task parentTask = taskRepository.findById(parentId)
                 .orElseThrow(() -> new RuntimeException("Tarefa não encontrada!"));
         subtaskData.setId(null);
         subtaskData.setParentTask(parentTask);
+        subtaskData.setUser(authenticatedUser);
 
         return taskRepository.save(subtaskData);
     }
@@ -97,8 +103,8 @@ public class TaskService {
         return taskRepository.save(foundTask);
     }
 
-    public List<Task> findWithFilters(Status status, Priority priority, LocalDate dueDate) {
-        Specification<Task> specification = TaskSpecification.isNull();
+    public List<TaskResponseDTO> findUserTasksWithFilters(User authenticatedUser, Status status, Priority priority, LocalDate dueDate) {
+        Specification<Task> specification = TaskSpecification.belongsToUser(authenticatedUser);
 
         if (status != null) {
             specification = specification.and(TaskSpecification.hasStatus(status));
@@ -110,6 +116,10 @@ public class TaskService {
             specification = specification.and(TaskSpecification.hasDueDate(dueDate));
         }
 
-        return taskRepository.findAll(specification);
+        List<Task> userTasks = taskRepository.findAll(specification);
+
+        return userTasks.stream()
+                .map(TaskResponseDTO::new)
+                .collect(Collectors.toList());
     }
 }

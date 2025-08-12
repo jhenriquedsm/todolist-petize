@@ -1,8 +1,10 @@
 package br.com.petize.todolist.controller;
 
 import br.com.petize.todolist.dtos.StatusUpdateDTO;
+import br.com.petize.todolist.dtos.TaskResponseDTO;
 import br.com.petize.todolist.dtos.UpdatePriorityDTO;
 import br.com.petize.todolist.model.Task;
+import br.com.petize.todolist.model.User;
 import br.com.petize.todolist.model.enums.Priority;
 import br.com.petize.todolist.model.enums.Status;
 import br.com.petize.todolist.service.TaskService;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -28,14 +31,15 @@ public class TaskController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Cria uma tarefa", description = "Cria uma tarefa recebendo os dados da tarefa pelo JSON")
-    public Task create(@RequestBody Task task) {
-        return taskService.create(task);
+    public ResponseEntity<Task> create(@RequestBody @Valid Task task, @AuthenticationPrincipal User authenticatedUser) {
+        Task createdTask = taskService.create(task, authenticatedUser); // associação de Task com User
+        return ResponseEntity.ok().body(createdTask);
     }
 
     @PostMapping(value = "/{parentId}/subtasks", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Cria uma subtarefa", description = "Cria uma subtarefa associando ela à uma tarefa pai")
-    public ResponseEntity<Task> createSubtask(@PathVariable Long parentId, @Valid @RequestBody Task subtaskData) {
-        Task createdSubtask = taskService.createSubtask(parentId, subtaskData);
+    public ResponseEntity<Task> createSubtask(@PathVariable Long parentId, @Valid @RequestBody Task subtaskData, @AuthenticationPrincipal User authenticatedUser) {
+        Task createdSubtask = taskService.createSubtask(parentId, subtaskData, authenticatedUser);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/task/{id}")
@@ -46,12 +50,13 @@ public class TaskController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Busca todas tarefas com filtros opcionais", description = "Busca as tarefas persistidas no banco de dados com filtros como status, priority e dueDate")
-    public ResponseEntity<List<Task>> findAll(
+    public ResponseEntity<List<TaskResponseDTO>> findAll(
+            @AuthenticationPrincipal User authenticatedUser,
             @RequestParam(required = false)Status status,
             @RequestParam(required = false)Priority priority,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate
     ) {
-        List<Task> tasks = taskService.findWithFilters(status, priority, dueDate);
+        List<TaskResponseDTO> tasks = taskService.findUserTasksWithFilters(authenticatedUser, status, priority, dueDate);
         return ResponseEntity.ok(tasks);
     }
 
