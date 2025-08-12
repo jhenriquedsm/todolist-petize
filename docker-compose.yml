@@ -1,0 +1,17 @@
+# docker-compose.yml
+
+services:
+  postgres-db:
+    image: postgres:13
+    container_name: todolist-petize
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: todolist_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
