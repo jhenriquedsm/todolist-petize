@@ -4,17 +4,19 @@ import br.com.petize.todolist.dtos.StatusUpdateDTO;
 import br.com.petize.todolist.dtos.UpdatePriorityDTO;
 import br.com.petize.todolist.model.Task;
 import br.com.petize.todolist.model.enums.Priority;
+import br.com.petize.todolist.model.enums.Status;
 import br.com.petize.todolist.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import javax.print.attribute.standard.Media;
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -43,8 +45,13 @@ public class TaskController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Busca todas as tarefas", description = "Busca todas as tarefas persistidas no banco de dados")
-    public List<Task> findAll() {
-        return taskService.findAll();
+    public ResponseEntity<List<Task>> findAll(
+            @RequestParam(required = false)Status status,
+            @RequestParam(required = false)Priority priority,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate
+    ) {
+        List<Task> tasks = taskService.findWithFilters(status, priority, dueDate);
+        return ResponseEntity.ok(tasks);
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

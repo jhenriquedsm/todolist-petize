@@ -5,8 +5,10 @@ import br.com.petize.todolist.model.enums.Priority;
 import br.com.petize.todolist.model.enums.Status;
 import br.com.petize.todolist.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -93,5 +95,21 @@ public class TaskService {
 
         foundTask.setPriority(newPriority);
         return taskRepository.save(foundTask);
+    }
+
+    public List<Task> findWithFilters(Status status, Priority priority, LocalDate dueDate) {
+        Specification<Task> specification = TaskSpecification.isNull();
+
+        if (status != null) {
+            specification = specification.and(TaskSpecification.hasStatus(status));
+        }
+        if (priority != null) {
+            specification = specification.and(TaskSpecification.hasPriority(priority));
+        }
+        if (dueDate != null) {
+            specification = specification.and(TaskSpecification.hasDueDate(dueDate));
+        }
+
+        return taskRepository.findAll(specification);
     }
 }
