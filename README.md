@@ -1,7 +1,7 @@
 # 📝 To-Do List API - Teste Técnico Estágio Backend
 
 ## 📌 Introdução
-Este projeto foi desenvolvido como parte do **teste técnico para estágio backend** na [Petize](https://petize.com.br).  
+Este projeto foi desenvolvido como parte do **teste técnico para estágio backend Java** na [Petize](https://petize.com.br).  
 O objetivo é implementar uma **API RESTful** para gerenciamento de tarefas (*To-Do List*), permitindo criar, listar, atualizar e excluir tarefas, com autenticação e persistência em banco de dados.
 
 A aplicação segue boas práticas de desenvolvimento e utiliza as seguintes tecnologias:
@@ -32,7 +32,7 @@ A aplicação segue boas práticas de desenvolvimento e utiliza as seguintes tec
 - [x] Documentação com Swagger ou README completo
 - [x] Testes unitários e de integração
 - [x] Docker Compose com banco de dados
-- [ ] Paginação, ordenação e upload de anexo
+- [x] Paginação e ordenação
 
 ---
 
@@ -75,7 +75,7 @@ POST /auth/register
 Content-Type: application/json
 
 {
-  "username": "user",
+  "email": "email",
   "password": "password"
 }
 ```
@@ -88,7 +88,7 @@ POST /auth/login
 Content-Type: application/json
 
 {
-  "username": "user",
+  "email": "email",
   "password": "password"
 }
 ```
@@ -120,6 +120,7 @@ Content-Type: application/json
 | Método | Endpoint             | Descrição                                     |
 | ------ |----------------------|-----------------------------------------------|
 | POST   | /tasks               | Cria nova tarefa                              |
+| POST   | /tasks/{id}/subtasks | Cria uma subtarefa                            |
 | GET    | /tasks               | Lista todas as tarefas do usuário autenticado |
 | GET    | /tasks/{id}          | Obtém detalhes de uma tarefa                  |
 | PUT    | /tasks/{id}          | Atualiza informações da tarefa                |
@@ -137,6 +138,98 @@ Content-Type: application/json
   "priority": "HIGH"
 }
 ```
+
+---
+
+## 📄 Paginação e Ordenação
+
+### Parâmetros de Requisição
+
+Para controlar a paginação e a ordenação, utilize os seguintes parâmetros de consulta (query params) na URL:
+
+- ```page```: O número da página que você deseja visualizar (começando em 0).
+  - Exemplo: *?page=0*
+
+- ```size```: O número de itens a serem exibidos por página.
+    - Exemplo: *?size=5*
+
+- ```sort```: O campo pelo qual os resultados devem ser ordenados, seguido pela direção (asc para ascendente, desc para descendente).
+  - Exemplo *(um campo)*: ?sort=title,asc
+  - Exemplo *(múltiplos campos)*: ?sort=priority,desc&sort=dueDate,asc
+
+### Comportamento Padrão
+
+Caso nenhum parâmetro de paginação ou ordenação seja fornecido, a API aplicará o seguinte padrão:
+
+- *Página*: 0
+- *Tamanho*: 10 itens por página
+- *Ordenação*: Por data de vencimento, em ordem ascendente (dueDate,asc).
+
+Uma requisição para ```GET /task``` é equivalente a ```GET /task?page=0&size=10&sort=dueDate,asc*```.
+
+### Exemplos de Uso
+
+- Buscar a primeira página (página 0) com 5 tarefas:
+```bash 
+GET http://localhost:8080/task?page=0&size=5
+```
+
+- Buscar a terceira página (página 2) e ordenar por título em ordem alfabética:
+```bash 
+GET http://localhost:8080/task?page=2&size=10&sort=title,asc
+```
+
+- Buscar todas as tarefas pendentes, ordenando pelas de maior prioridade primeiro e, em caso de empate, pela data de vencimento mais próxima:
+```bash 
+GET http://localhost:8080/task?status=PENDING&sort=priority,desc&sort=dueDate,asc
+```
+
+### Exemplo de Resposta JSON
+A resposta para uma requisição paginada inclui os dados (content) e os metadados da paginação:
+
+```json 
+{
+  "content": [
+    {
+      "id": 1,
+      "title": "Tarefa",
+      "description": "Descrição da tarefa...",
+      "dueDate": "2025-08-15",
+      "status": "PENDING",
+      "priority": "HIGH",
+      "user": {
+        "id": 1,
+        "email": "usuario@email.com"
+      }
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 10,
+    "sort": {
+      "sorted": true,
+      "unsorted": false,
+      "empty": false
+    },
+    "offset": 0,
+    "paged": true,
+    "unpaged": false
+  },
+  "totalPages": 1,
+  "totalElements": 1,
+  "last": true,
+  "size": 10,
+  "number": 0,
+  "numberOfElements": 1,
+  "first": true,
+  "empty": false
+}
+```
+
+- ```content```: A lista de tarefas da página atual.
+- ```totalPages```: O número total de páginas existentes.
+- ```totalElements```: O número total de tarefas que correspondem à busca.
+- ```number```: O índice da página atual (base 0).
 
 ---
 
