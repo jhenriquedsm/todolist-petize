@@ -11,6 +11,10 @@ import br.com.petize.todolist.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -50,13 +54,14 @@ public class TaskController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Busca todas tarefas do Usuário com filtros opcionais", description = "Busca as tarefas do usuário persistidas no banco de dados com filtros como status, priority e dueDate")
-    public ResponseEntity<List<TaskResponseDTO>> findAll(
+    public ResponseEntity<Page<TaskResponseDTO>> findAll(
             @AuthenticationPrincipal User authenticatedUser,
+            @PageableDefault(size = 10, sort = "dueDate", direction = Sort.Direction.ASC) Pageable pageable,
             @RequestParam(required = false)Status status,
             @RequestParam(required = false)Priority priority,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate
     ) {
-        List<TaskResponseDTO> tasks = taskService.findUserTasksWithFilters(authenticatedUser, status, priority, dueDate);
+        Page<TaskResponseDTO> tasks = taskService.findUserTasksWithFilters(authenticatedUser, status, priority, dueDate, pageable);
         return ResponseEntity.ok(tasks);
     }
 

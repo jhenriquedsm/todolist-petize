@@ -7,12 +7,13 @@ import br.com.petize.todolist.model.enums.Priority;
 import br.com.petize.todolist.model.enums.Status;
 import br.com.petize.todolist.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -103,7 +104,7 @@ public class TaskService {
         return taskRepository.save(foundTask);
     }
 
-    public List<TaskResponseDTO> findUserTasksWithFilters(User authenticatedUser, Status status, Priority priority, LocalDate dueDate) {
+    public Page<TaskResponseDTO> findUserTasksWithFilters(User authenticatedUser, Status status, Priority priority, LocalDate dueDate, Pageable pageable) {
         Specification<Task> specification = TaskSpecification.belongsToUser(authenticatedUser);
 
         if (status != null) {
@@ -116,10 +117,8 @@ public class TaskService {
             specification = specification.and(TaskSpecification.hasDueDate(dueDate));
         }
 
-        List<Task> userTasks = taskRepository.findAll(specification);
+        Page<Task> userTasks = taskRepository.findAll(specification, pageable);
 
-        return userTasks.stream()
-                .map(TaskResponseDTO::new)
-                .collect(Collectors.toList());
+        return userTasks.map(TaskResponseDTO::new);
     }
 }
